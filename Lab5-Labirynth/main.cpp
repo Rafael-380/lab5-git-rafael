@@ -34,15 +34,15 @@ public:
                 futureBounds.left += directions[i].x;
                 futureBounds.top += directions[i].y;
 
-                // Verifica limites da janela
+                // Verify the bounds of the window
                 if (futureBounds.left < bound_left ||
                     futureBounds.top < bound_top ||
                     futureBounds.left + futureBounds.width > bound_right ||
                     futureBounds.top + futureBounds.height > bound_bottom) {
-                    continue; // Ignora movimento se sair da janela
+                    continue;
                 }
 
-                // Verifica colisões com paredes
+                // Verify the bounds of the walls
                 bool collision = false;
                 for (const auto& wall : obstacles) {
                     if (futureBounds.intersects(wall.getGlobalBounds())) {
@@ -99,31 +99,59 @@ int main() {
     // Player
     CustomSprite guy;
     guy.setTexture(guy_tex);
-    guy.setPosition(100, 100);
+    guy.setPosition(1, 26);
+    guy.setScale(0.9,0.8);
     guy.setBounds(0, 800, 0, 600);
 
-    // Walls
+    // Labirynth 24x32 (0 = empty, 1 = wall)
+    int maze[24][32] = {
+        {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},
+        {0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,1},
+        {0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,1},
+        {0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,1},
+        {1,0,0,0,1,0,0,1,1,1,1,1,1,1,1,0,0,0,1,0,0,1,0,0,1,0,0,1,1,0,0,1},
+        {1,0,0,0,1,0,0,0,0,0,0,0,0,0,1,1,0,0,1,0,0,1,0,0,1,0,0,1,1,0,0,1},
+        {1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,1,0,0,1,0,0,0,1},
+        {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,1,0,0,1,0,0,0,1},
+        {1,0,0,0,0,0,0,1,1,1,1,1,0,0,0,1,0,0,0,0,0,1,0,0,1,0,0,1,0,0,0,1},
+        {1,0,0,0,0,0,0,1,0,0,0,0,0,0,0,1,1,1,1,1,1,0,0,0,1,0,0,1,0,0,0,1},
+        {1,0,0,0,1,1,1,1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,1,0,0,0,1},
+        {1,0,0,1,1,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,1,0,0,1,0,0,0,1},
+        {1,0,0,1,0,0,0,0,0,0,1,1,1,1,1,0,0,0,0,0,0,0,0,1,1,0,0,1,0,0,0,1},
+        {1,0,0,1,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,1,0,0,0,1},
+        {1,0,0,1,0,0,0,1,1,1,1,0,0,0,0,0,0,0,1,1,0,0,1,0,0,0,0,1,1,0,0,1},
+        {1,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,1,0,0,0,0,1,1,0,0,1},
+        {1,0,0,0,1,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,1,0,0,1,1,1,1,1,1,1},
+        {1,0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1},
+        {1,0,0,0,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,0,0,1},
+        {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,1},
+        {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,1,1,1,1,1,1,0,0,0},
+        {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0},
+        {1,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0},
+        {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}
+    };
+
+
+    // Create Walls
     std::vector<sf::Sprite> walls;
-    auto createWall = [&](float x, float y, float scaleX = 0.3f, float scaleY = 0.3f) {
+    auto createWall = [&](float x, float y) {
         sf::Sprite wall;
         wall.setTexture(wall_tex);
-        wall.setScale(scaleX, scaleY);
+        wall.setTextureRect(sf::IntRect(0, 0, 100, 100));   // Cuts the texture do 100x100 px
+        wall.setScale(0.25, 0.25);                          // Reduces the scale to 25x25 px
         wall.setPosition(x, y);
         walls.push_back(wall);
     };
 
-    // Example walls
-    createWall(200, 100);
-    createWall(300, 100);
-    createWall(400, 100);
-    createWall(400, 200);
-    createWall(400, 300);
-    createWall(200, 300);
-    createWall(200, 400);
-    createWall(300, 400);
-    createWall(100, 300);
+    // Build labirynth from matrix
+    for (int row = 0; row < 24; ++row) {
+        for (int col = 0; col < 32; ++col) {
+            if (maze[row][col] == 1) {
+                createWall(col * 25.f, row * 25.f);
+            }
+        }
+    }
 
-    // Game loop
     while (window.isOpen()) {
         sf::Time elapsed = clock.restart();
 
@@ -134,15 +162,16 @@ int main() {
         }
 
         guy.setBounds(0, window.getSize().x, 0, window.getSize().y);
-
         guy.moveInDirection(elapsed, walls);
 
         window.clear();
         window.draw(grass);
         window.draw(guy);
+
         for (const auto& wall : walls) {
             window.draw(wall);
         }
+
         window.display();
     }
 
